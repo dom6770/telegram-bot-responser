@@ -1,7 +1,6 @@
 services:
   telegram-bot-responser:
-    build: .
-    image: telegram-bot-responser
+    image: ghcr.io/dom6770/telegram-bot-responser
     container_name:  telegram-bot-responser
 
     restart: unless-stopped
