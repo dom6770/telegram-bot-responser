@@ -8,7 +8,7 @@ load_dotenv()
 
 # Set up your bot token and other variables from the environment
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-TRIGGER_WORD = os.getenv('TRIGGER_WORD')
+TRIGGER_WORDS = os.getenv('TRIGGER_WORDS').split(',')
 STATS_FILE = os.getenv('STATS_FILE')
 
 RESPONSE_MESSAGE = os.getenv('RESPONSE_MESSAGE')
@@ -42,7 +42,7 @@ async def message_handler(update: Update, context: CallbackContext):
     message_text = update.message.text.lower()
 
     # Check if the trigger word is in the message
-    if TRIGGER_WORD in message_text:
+    if any(word in message_text for word in TRIGGER_WORDS):
         # Get the username of the sender
         username = update.message.from_user.username
 
