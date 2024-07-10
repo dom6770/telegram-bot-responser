@@ -43,38 +43,48 @@ async def message_handler(update: Update, context: CallbackContext):
 
     # Check if the trigger word is in the message
     if any(word in message_text for word in TRIGGER_WORDS):
-        # Get the username of the sender
-        username = update.message.from_user.username
+        await handle_response(update, context, update.message.from_user.username)
 
-        # Get the group chat ID
-        group_id = str(update.message.chat.id)
+# Define the function to handle /warn command
+async def warn_command(update: Update, context: CallbackContext):
+    if len(context.args) != 1:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Usage: /warn @username")
+        return
 
-        print(f"Group {group_id} - {username}: {message_text}")
+    target_username = context.args[0].lstrip('@')
+    await handle_response(update, context, target_username)
 
-        # Load the statistics
-        statistics = load_statistics()
+# Common response handler
+async def handle_response(update: Update, context: CallbackContext, target_username):
+    # Get the group chat ID
+    group_id = str(update.message.chat.id)
 
-        # Ensure the group exists in the statistics
-        if group_id not in statistics:
-            statistics[group_id] = {}
+    print(f"Group {group_id} - Target: {target_username}")
 
-        # Increment the counter for the user or initialize it to 1
-        user_counter = statistics[group_id].get(username, 0) + 1
-        statistics[group_id][username] = user_counter
+    # Load the statistics
+    statistics = load_statistics()
 
-        # Save the updated statistics
-        save_statistics(statistics)
+    # Ensure the group exists in the statistics
+    if group_id not in statistics:
+        statistics[group_id] = {}
 
-        # Determine the response based on the counter
-        if user_counter == SPECIAL_RESPONSE_NUMBER_1:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=SPECIAL_RESPONSE_MESSAGE_1.format(username, user_counter))
-            await context.bot.send_animation(chat_id=update.effective_chat.id, animation=SPECIAL_RESPONSE_GIF_URL_1)
-        elif user_counter == SPECIAL_RESPONSE_NUMBER_2:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=SPECIAL_RESPONSE_MESSAGE_2.format(username, user_counter))
-            await context.bot.send_animation(chat_id=update.effective_chat.id, animation=SPECIAL_RESPONSE_GIF_URL_2)
-        else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=RESPONSE_MESSAGE.format(username, user_counter))
-            await context.bot.send_animation(chat_id=update.effective_chat.id, animation=RESPONSE_GIF_URL)
+    # Increment the counter for the user or initialize it to 1
+    user_counter = statistics[group_id].get(target_username, 0) + 1
+    statistics[group_id][target_username] = user_counter
+
+    # Save the updated statistics
+    save_statistics(statistics)
+
+    # Determine the response based on the counter
+    if user_counter == int(SPECIAL_RESPONSE_NUMBER_1):
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=SPECIAL_RESPONSE_MESSAGE_1.format(target_username, user_counter))
+        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=SPECIAL_RESPONSE_GIF_URL_1)
+    elif user_counter == int(SPECIAL_RESPONSE_NUMBER_2):
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=SPECIAL_RESPONSE_MESSAGE_2.format(target_username, user_counter))
+        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=SPECIAL_RESPONSE_GIF_URL_2)
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=RESPONSE_MESSAGE.format(target_username, user_counter))
+        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=RESPONSE_GIF_URL)
 
 def main():
     # Set up the bot
@@ -82,6 +92,9 @@ def main():
 
     # Add the message handler
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+
+    # Add the /warn command handler
+    application.add_handler(CommandHandler('warn', warn_command))
 
     # Start the bot
     application.run_polling()
