@@ -9,7 +9,7 @@ load_dotenv()
 # Set up your bot token and other variables from the environment
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 TRIGGER_WORDS = os.getenv('TRIGGER_WORDS').split(',')
-WHITELIST = os.getenv('WHITELIST').split(',')
+ADMIN_USERS = os.getenv('ADMIN_USERS').split(',')
 STATS_FILE = os.getenv('STATS_FILE')
 
 RESPONSE_MESSAGE = os.getenv('RESPONSE_MESSAGE')
@@ -44,14 +44,19 @@ async def message_handler(update: Update, context: CallbackContext):
 
     # Check if the trigger word is in the message
     if any(word in message_text for word in TRIGGER_WORDS):
-        await handle_response(update, context, update.message.from_user.username)
+        if update.message.from_user.username not in ADMIN_USERS:
+            await handle_response(update, context, update.message.from_user.username)
 
 # Define the function to handle /warn command
 async def warn_command(update: Update, context: CallbackContext):
     if len(context.args) != 1:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Usage: /warn @username")
         return
-
+    
+    if update.message.from_user.username not in ADMIN_USERS:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not authorized to use this command.")
+        return
+    
     target_username = context.args[0].lstrip('@')
     await handle_response(update, context, target_username)
 
@@ -61,10 +66,6 @@ async def handle_response(update: Update, context: CallbackContext, target_usern
     group_id = str(update.message.chat.id)
 
     print(f"Group {group_id} - Target: {target_username}")
-
-    # Skip if user is on whitelist
-    if target_username in WHITELIST:
-        return
 
     # Load the statistics
     statistics = load_statistics()
