@@ -69,11 +69,11 @@ async def warn_command(update: Update, context: CallbackContext):
     user = message.from_user.username
 
     if len(context.args) != 1:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Usage: /warn @username")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Usage: /warn @username", reply_to_message_id=message.message_id) 
         return
     
     if user not in ADMIN_USERS:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not authorized to use this command.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not authorized to use this command.", reply_to_message_id=message.message_id)
         return
     
     target_username = context.args[0].lstrip('@')
@@ -109,14 +109,35 @@ async def handle_response(update: Update, context: CallbackContext, target_usern
 
     # Determine the response based on the counter
     if user_counter == int(SPECIAL_RESPONSE_NUMBER_1):
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=SPECIAL_RESPONSE_MESSAGE_1.format(target_username, user_counter))
-        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=SPECIAL_RESPONSE_GIF_URL_1)
+        await context.bot.send_message(
+            chat_id=message.chat.id, 
+            text=SPECIAL_RESPONSE_MESSAGE_1.format(target_username, user_counter),
+            reply_to_message_id=message.message_id  # Reply to the original message
+        )
+        await context.bot.send_animation(
+            chat_id=message.chat.id, 
+            animation=SPECIAL_RESPONSE_GIF_URL_1 # Reply to the original message
+        )
     elif user_counter == int(SPECIAL_RESPONSE_NUMBER_2):
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=SPECIAL_RESPONSE_MESSAGE_2.format(target_username, user_counter))
-        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=SPECIAL_RESPONSE_GIF_URL_2)
+        await context.bot.send_message(
+            chat_id=message.chat.id, 
+            text=SPECIAL_RESPONSE_MESSAGE_2.format(target_username, user_counter),
+            reply_to_message_id=message.message_id  # Reply to the original message
+        )
+        await context.bot.send_animation(
+            chat_id=message.chat.id, 
+            animation=SPECIAL_RESPONSE_GIF_URL_2  # Reply to the original message
+        )
     else:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=RESPONSE_MESSAGE.format(target_username, user_counter))
-        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=RESPONSE_GIF_URL)
+        await context.bot.send_message(
+            chat_id=message.chat.id, 
+            text=RESPONSE_MESSAGE.format(target_username, user_counter),
+            reply_to_message_id=message.message_id  # Reply to the original message
+        )
+        await context.bot.send_animation(
+            chat_id=message.chat.id, 
+            animation=RESPONSE_GIF_URL  # Reply to the original message
+        )
 
 def main():
     # Set up the bot
