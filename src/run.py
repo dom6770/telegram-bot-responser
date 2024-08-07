@@ -39,21 +39,40 @@ def save_statistics(statistics):
 
 # Define the function to handle messages
 async def message_handler(update: Update, context: CallbackContext):
+    # Determine if the message is a new message or an edited message
+    message = update.message or update.edited_message
+
+    # If both message and edited_message are None, return early
+    if message is None:
+        return
+
+    # Get the username of the user who sent or edited the message
+    user = message.from_user.username
+
     # Get the text of the message
-    message_text = update.message.text.lower()
+    message_text = message.text.lower()
 
     # Check if the trigger word is in the message
     if any(word in message_text for word in TRIGGER_WORDS):
-        if update.message.from_user.username not in ADMIN_USERS:
-            await handle_response(update, context, update.message.from_user.username)
+        if user not in ADMIN_USERS:
+            await handle_response(update, context, user)
 
 # Define the function to handle /warn command
 async def warn_command(update: Update, context: CallbackContext):
+    # Determine if the message is a new message or an edited message
+    message = update.message or update.edited_message
+
+    # If both are None, return early
+    if message is None or message.from_user.username is None:
+        return
+
+    user = message.from_user.username
+
     if len(context.args) != 1:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Usage: /warn @username")
         return
     
-    if update.message.from_user.username not in ADMIN_USERS:
+    if user not in ADMIN_USERS:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not authorized to use this command.")
         return
     
@@ -62,8 +81,15 @@ async def warn_command(update: Update, context: CallbackContext):
 
 # Common response handler
 async def handle_response(update: Update, context: CallbackContext, target_username):
+    # Determine if the message is a new message or an edited message
+    message = update.message or update.edited_message
+
+    # If both are None, return early
+    if message is None:
+        return
+
     # Get the group chat ID
-    group_id = str(update.message.chat.id)
+    group_id = str(message.chat.id)
 
     print(f"Group {group_id} - Target: {target_username}")
 
