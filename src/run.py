@@ -9,6 +9,7 @@ load_dotenv()
 # Set up your bot token and other variables from the environment
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 TRIGGER_WORDS = os.getenv('TRIGGER_WORDS').split(',')
+WHITELIST = os.getenv('WHITELIST').split(',')
 STATS_FILE = os.getenv('STATS_FILE')
 
 RESPONSE_MESSAGE = os.getenv('RESPONSE_MESSAGE')
@@ -60,6 +61,10 @@ async def handle_response(update: Update, context: CallbackContext, target_usern
     group_id = str(update.message.chat.id)
 
     print(f"Group {group_id} - Target: {target_username}")
+
+    # Skip if user is on whitelist
+    if target_username in WHITELIST:
+        return
 
     # Load the statistics
     statistics = load_statistics()
